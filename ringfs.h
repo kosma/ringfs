@@ -26,6 +26,7 @@ struct ringfs_flash_partition
     int sector_size;            /**< Sector size, in bytes. */
     int sector_offset;          /**< Partition offset, in sectors. */
     int sector_count;           /**< Partition size, in sectors. */
+    void *context;              /**< Partition data context. Assigned by the owner. */
 
     /**
      * Erase a sector.
