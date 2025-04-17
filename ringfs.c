@@ -102,7 +102,7 @@ static int _slot_get_status(struct ringfs *fs, struct ringfs_loc *loc, uint32_t 
 
 static int _slot_set_status(struct ringfs *fs, struct ringfs_loc *loc, uint32_t status)
 {
-    return fs->flash->program(fs->flash, 
+    return fs->flash->program(fs->flash,
             _slot_address(fs, loc) + offsetof(struct slot_header, status),
             &status, sizeof(status));
 }
@@ -208,6 +208,7 @@ int ringfs_scan(struct ringfs *fs)
         if (header.status == SECTOR_ERASING || header.status == SECTOR_ERASED) {
             _sector_free(fs, sector);
             header.status = SECTOR_FREE;
+            header.version = fs->version;
         }
 
         /* Detect corrupted sectors. */
@@ -306,7 +307,7 @@ int ringfs_count_exact(struct ringfs *fs)
     while (!_loc_equal(&loc, &fs->write)) {
         uint32_t status;
         _slot_get_status(fs, &loc, &status);
-        
+
         if (status == SLOT_VALID)
             count++;
 
