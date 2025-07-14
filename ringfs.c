@@ -57,10 +57,11 @@ static int _sector_set_status(struct ringfs *fs, int sector, uint32_t status)
             &status, sizeof(status));
 }
 
-static int _sector_free(struct ringfs *fs, int sector)
+static int _sector_free(struct ringfs *fs, int sector, uint32_t current_status)
 {
     int sector_addr = _sector_address(fs, sector);
-    _sector_set_status(fs, sector, SECTOR_ERASING);
+    if (current_status != SECTOR_ERASING && current_status != SECTOR_FORMATTING)
+        _sector_set_status(fs, sector, SECTOR_ERASING);
     fs->flash->sector_erase(fs->flash, sector_addr);
     fs->flash->program(fs->flash,
             sector_addr + offsetof(struct sector_header, version),
@@ -102,7 +103,7 @@ static int _slot_get_status(struct ringfs *fs, struct ringfs_loc *loc, uint32_t 
 
 static int _slot_set_status(struct ringfs *fs, struct ringfs_loc *loc, uint32_t status)
 {
-    return fs->flash->program(fs->flash, 
+    return fs->flash->program(fs->flash,
             _slot_address(fs, loc) + offsetof(struct slot_header, status),
             &status, sizeof(status));
 }
@@ -163,7 +164,7 @@ int ringfs_format(struct ringfs *fs)
 
     /* Erase, update version, mark as free. */
     for (int sector=0; sector<fs->flash->sector_count; sector++)
-        _sector_free(fs, sector);
+        _sector_free(fs, sector, SECTOR_FORMATTING);
 
     /* Start reading & writing at the first sector. */
     fs->read.sector = 0;
@@ -206,7 +207,7 @@ int ringfs_scan(struct ringfs *fs)
 
         /* Detect and fix partially erased sectors. */
         if (header.status == SECTOR_ERASING || header.status == SECTOR_ERASED) {
-            _sector_free(fs, sector);
+            _sector_free(fs, sector, header.status);
             header.status = SECTOR_FREE;
         }
 
@@ -340,7 +341,7 @@ int ringfs_append(struct ringfs *fs, const void *object)
             _loc_advance_sector(fs, &fs->cursor);
 
         /* Free the next sector. */
-        _sector_free(fs, next_sector);
+        _sector_free(fs, next_sector, status);
     }
 
     /* Now we can make sure the current write sector is writable. */
