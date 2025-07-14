@@ -209,6 +209,7 @@ int ringfs_scan(struct ringfs *fs)
         if (header.status == SECTOR_ERASING || header.status == SECTOR_ERASED) {
             _sector_free(fs, sector, header.status);
             header.status = SECTOR_FREE;
+            header.version = fs->version;
         }
 
         /* Detect corrupted sectors. */
@@ -307,7 +308,7 @@ int ringfs_count_exact(struct ringfs *fs)
     while (!_loc_equal(&loc, &fs->write)) {
         uint32_t status;
         _slot_get_status(fs, &loc, &status);
-        
+
         if (status == SLOT_VALID)
             count++;
 
