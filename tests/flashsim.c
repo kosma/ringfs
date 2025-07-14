@@ -33,9 +33,20 @@ struct flashsim *flashsim_open(const char *name, int size, int sector_size)
 
     sim->size = size;
     sim->sector_size = sector_size;
-    sim->fh = fopen(name, "w+");
+    sim->fh = fopen(name, "wb+");
     assert(sim->fh != NULL);
     assert(ftruncate(fileno(sim->fh), size) == 0);
+
+    // Populate file with 0xFF to mimic a real empty flash
+    void *empty = malloc(sim->sector_size);
+    assert(empty != NULL);
+    memset(empty, 0xff, sim->sector_size);
+
+    for (int address=0; address<size; address+=sector_size) {
+        assert(fwrite(empty, 1, sim->sector_size, sim->fh) == (size_t) sim->sector_size);
+    }
+
+    free(empty);
 
     return sim;
 }
