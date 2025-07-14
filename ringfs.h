@@ -9,6 +9,10 @@
 #ifndef RINGFS_H
 #define RINGFS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @defgroup ringfs_api RingFS API
  * @{
@@ -176,6 +180,10 @@ void ringfs_dump(FILE *stream, struct ringfs *fs);
 /**
  * @}
  */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 
