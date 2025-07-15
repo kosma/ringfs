@@ -142,7 +142,7 @@ static void _loc_advance_slot(struct ringfs *fs, struct ringfs_loc *loc)
 
 /* And here we go. */
 
-int ringfs_init(struct ringfs *fs, struct ringfs_flash_partition *flash, uint32_t version, int object_size)
+void ringfs_init(struct ringfs *fs, struct ringfs_flash_partition *flash, uint32_t version, int object_size)
 {
     /* Copy arguments to instance. */
     fs->flash = flash;
@@ -152,8 +152,6 @@ int ringfs_init(struct ringfs *fs, struct ringfs_flash_partition *flash, uint32_
     /* Precalculate commonly used values. */
     fs->slots_per_sector = (fs->flash->sector_size - sizeof(struct sector_header)) /
                            (sizeof(struct slot_header) + fs->object_size);
-
-    return 0;
 }
 
 int ringfs_format(struct ringfs *fs)
